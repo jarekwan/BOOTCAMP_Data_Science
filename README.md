@@ -1,4 +1,4 @@
-# Supplier Segmentation Using PCA and Clustering
+# Supplier Segmentation using Clustering
 
 ## Project Overview
 This project focuses on segmenting suppliers based on numerical performance metrics. The goal is to identify natural groups related to cost, quality, delivery performance, and operational stability. Such segmentation supports data-driven procurement decisions, helps identify high-risk suppliers, and enables better resource allocation. This notebook was developed as a Data Science Bootcamp final assignment.
