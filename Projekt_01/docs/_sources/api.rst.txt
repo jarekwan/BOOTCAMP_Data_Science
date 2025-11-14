@@ -1,0 +1,182 @@
+RestCountries data analysis – script overview
+=============================================
+
+This page describes what the script ``PROJEKT1`` does step by step.
+
+High-level description
+----------------------
+
+The script performs a complete data validation and exploration workflow on the
+`RestCountries <https://restcountries.com>`_ API data. It:
+
+1. **Downloads JSON data from the RestCountries API**
+
+   * URL used:
+     ``https://restcountries.com/v3.1/all?fields=name,capital,region,subregion,population,area,currencies,languages,timezones,flags``
+   * Only selected fields are requested:
+     ``name``, ``capital``, ``region``, ``subregion``, ``population``,
+     ``area``, ``currencies``, ``languages``, ``timezones``, ``flags``.
+
+2. **Checks that the data was fetched correctly**
+
+   * Prints the HTTP status code (expects 200).
+   * Prints the length of the response text.
+   * Prints the first 500 characters of the raw JSON.
+   * Checks whether key substrings like ``"name"`` and ``"population"`` are present.
+
+3. **Converts the JSON response into Python objects**
+
+   * If the status is 200, the JSON is converted to a Python list of dictionaries.
+   * The script prints the type of the whole object and the type of the first element.
+   * It also inspects the types of the first element fields:
+     ``name``, ``capital``, ``region``, ``subregion``, ``population``,
+     ``area``, ``currencies``, ``languages``, ``timezones``, ``flags``.
+
+4. **Recursively describes the nested JSON structure**
+
+   * Defines a helper function ``describe(val)`` which:
+     - detects dictionaries and describes each key recursively,
+     - detects lists and describes the type of their first element,
+     - for simple values returns the name of the Python type.
+   * Builds a dictionary describing the structure of the first JSON record.
+   * Pretty-prints this description using ``json.dumps(..., indent=2)``.
+
+5. **Checks installed Pydantic version**
+
+   * Imports :mod:`pydantic` and prints the installed version number.
+
+6. **Defines Pydantic models for the RestCountries schema**
+
+   * ``Flags`` – stores URLs and alt text for a country flag.
+   * ``NativeNameEntry`` – stores official and common native names.
+   * ``Name`` – stores common name, official name and dictionary of native names.
+   * ``Currency`` – stores currency name and symbol.
+   * ``Country`` – main model with fields:
+     ``name``, ``flags``, ``currencies``, ``capital``, ``region``, ``subregion``,
+     ``languages``, ``area``, ``population``, ``timezones``.
+
+7. **Validates all countries using Pydantic**
+
+   * Attempts to build a list of ``Country`` objects from the raw JSON.
+   * Prints how many countries were successfully validated.
+   * If validation fails, prints details of the :class:`pydantic.ValidationError`.
+
+8. **Analyses optional fields in the Pydantic model**
+
+   * Iterates through ``Country.model_fields`` to detect optional fields.
+   * For each raw country item:
+     - checks which optional fields are missing or set to ``None``,
+     - prints a list of missing optional fields for that record.
+
+9. **Serializes data to and from JSON file**
+
+   * Saves the raw JSON data to ``countries.json`` with indentation for readability.
+   * Reads the file back into memory.
+   * Uses :func:`pandas.json_normalize` to convert it into a flat
+     :class:`pandas.DataFrame`.
+
+10. **Performs manual type validation inside the DataFrame**
+
+    * Checks whether all values in column ``population`` are integers.
+    * Checks whether all values in column ``area`` are integers or floats.
+    * Prints rows where the type in these columns is invalid (if any).
+
+11. **Explores and quantifies missing values (NaN)**
+
+    * Prints total number of missing values per column.
+    * Saves a subset of missing-value information to ``braki.csv``.
+    * Calculates:
+      - how many columns have at least one missing value,
+      - how many columns have no missing values,
+      - how many rows contain at least one missing value,
+      - how many rows have no missing values.
+    * Computes the percentage of missing values per column, sorts them
+      in descending order and saves to ``braki_procent.csv``.
+
+12. **Drops columns with too many missing values**
+
+    * Defines a threshold (e.g. 89%).
+    * Selects columns where the percentage of missing values is above this threshold.
+    * Drops these columns from the DataFrame.
+    * Prints how many columns were dropped and how many remain.
+    * Saves the list of remaining column names to ``pozostale_kolumny.csv``.
+
+13. **Checks data types in selected currency and language columns**
+
+    * For example:
+      - ``currencies.EUR.name``, ``currencies.EUR.symbol``,
+      - French native names (``name.nativeName.fra.*``) and ``languages.fra``,
+      - English native names (``name.nativeName.eng.*``) and ``languages.eng``.
+    * Builds a small DataFrame with information about the Python types found
+      in each of these columns.
+    * Saves it to ``typy_danych_sprawdzane.csv``.
+
+14. **Fills missing values according to predefined business rules**
+
+    * For Euro currency:
+      - missing ``currencies.EUR.name`` and ``currencies.EUR.symbol`` → ``"not EUR"``.
+    * For French-related columns:
+      - missing values in native French names and ``languages.fra`` → ``"nonFR"``.
+    * For English-related columns:
+      - missing values in native English names and ``languages.eng`` → ``"nonENG"``.
+    * Re-checks whether any missing values remain in these columns.
+
+15. **Counts remaining missing values**
+
+    * Prints the number of columns that still contain missing values (if any).
+    * Prints the number of rows with missing values and shows a sample of them.
+    * Checks whether the DataFrame is completely free of NaNs.
+
+16. **Computes descriptive statistics using Pandas**
+
+    * Selects all numeric columns.
+    * Computes:
+      - full descriptive statistics with ``DataFrame.describe()``,
+      - mean values,
+      - median values,
+      - standard deviation.
+    * Saves these statistics (transposed) to ``statystyki_opisowe.csv``.
+
+17. **Groups data and builds a pivot table**
+
+    * Groups countries by ``region`` and computes mean ``population`` and ``area``.
+    * Builds a pivot table with mean population per region.
+
+18. **Performs numeric transformations with NumPy**
+
+    * Adds new columns:
+      - ``log_population`` and ``log_area`` using ``np.log1p``,
+      - ``zscore_population`` and ``zscore_area`` (standardization),
+      - ``norm_population`` and ``norm_area`` (normalization to [0, 1]).
+    * Saves the full DataFrame with these derived columns to
+      ``kraje_z_normalizacja.csv``.
+
+19. **Creates visualizations using Matplotlib and Seaborn**
+
+    * Histogram of ``population``.
+    * Boxplot of ``area``.
+    * Scatter plot of ``population`` vs ``area``.
+    * Scatter plot of ``log_population`` vs ``log_area``.
+
+20. **Cleans and validates text fields using regular expressions**
+
+    * Defines a ``clean_text`` function that removes all characters except
+      letters and spaces.
+    * Applies it to the ``capital`` column to create ``capital_clean``.
+    * Checks which regions do not match the pattern
+      ``^[A-Za-z\\s]+$`` (only letters and spaces).
+    * Standardizes capital names to title case.
+    * Saves the cleaned DataFrame to ``df_regex_cleaned.csv``.
+
+Source code (optional)
+----------------------
+
+Below you can include the raw script for reference::
+
+   # The PROJEKT1.py file is stored one level above the docs/source directory.
+   # You can show it here with a literalinclude if you want, e.g.:
+   #
+   # .. literalinclude:: ../PROJEKT1.py
+   #    :language: python
+   #    :linenos:
+
