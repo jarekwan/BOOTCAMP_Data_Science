@@ -6,6 +6,12 @@ This project focuses on segmenting suppliers based on numerical performance metr
 ## Dataset Description
 The dataset consists of numerical features describing supplier behavior and performance. Each record represents one supplier. Typical characteristics may include delivery delay, defect rate, cost efficiency, response time, reliability indicators, and process stability. Only numerical columns were preserved for modeling to ensure compatibility with PCA and clustering.
 
+
+##Colab links:
+PROJECT_DATASCIENCE:https://colab.research.google.com/drive/1Gixb_xdjTX2q7ozwc3yIExg-ibh0yLJ-?usp=sharing
+
+PROJECT_DATASCIENCE2:https://colab.research.google.com/drive/1ve87017qSmzaeKZ1eWp922y62cYRbjoX?usp=sharing
+
 ## Methodology
 
 ### Exploratory Data Analysis (EDA)
