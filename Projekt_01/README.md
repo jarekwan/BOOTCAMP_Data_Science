@@ -14,6 +14,12 @@ Main libraries used:
 
 The project verifies the raw JSON response, checks status codes, prints structural information, and inspects key fields.
 
+Colab Links:
+
+Projekt1: https://colab.research.google.com/drive/14dhcRBR2VlQXfumiHCCb3OU23P4EIiF3?usp=sharing
+
+Projekt1_light: https://colab.research.google.com/drive/18yJlYnC8yODdgqtXLjTE_0qojDpE0u33?usp=sharing
+
 ## 2. JSON Structure Analysis
 A recursive function was implemented to describe the type of each field in the JSON document.  
 The structure is printed in a human-readable tree using json.dumps().  
